@@ -52,34 +52,63 @@ export const loadOneProduct = async (req, res) => {
     }
 
 };
-//여러개 조회
+// 여러 개 조회
 export const loadProductList = async (req, res) => {
-    const productList = await Product.find();
+    try {
+        const productList = await Product.find();
 
-    let { page, pageSize, orderBy } = req.query;
+        let { page, pageSize, orderBy, keyword } = req.query;
 
-    page = Number(page) || 1;
-    pageSize = Number(pageSize) || 10;
+        page = Number(page) || 1;
+        pageSize = Number(pageSize) || 10;
 
-    if (orderBy !== "favorite" && orderBy !== "recent") {
-        orderBy = "recent";
+        if (orderBy !== "favorite" && orderBy !== "recent") {
+            orderBy = "recent";
+        }
+
+        
+        let filteredList = productList;
+
+        if (keyword) {
+            filteredList = productList.filter((product) =>
+                product.name.includes(keyword) ||
+                product.description.includes(keyword)
+            );
+        }
+
+        // 정렬
+        if (orderBy === "favorite") {
+            filteredList.sort(
+                (a, b) => b.favoriteCount - a.favoriteCount
+            );
+        }
+        else if (orderBy === "recent") {
+            filteredList.sort(
+                (a, b) => b.createdAt - a.createdAt
+            );
+        }
+
+        // 검색 결과 전체 개수
+        const totalCount = await Product.countDocuments();
+
+        // 페이지네이션
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+
+        const result = filteredList.slice(start, end);
+
+        return res.json({
+            list: result,
+            totalCount: totalCount
+        });
+
+    } catch (error) {
+        console.error("loadProductList 에러 :", error);
+
+        return res.status(500).json({
+            message: "상품 목록을 불러오는데 실패했습니다."
+        });
     }
-
-    if (orderBy === "favorite") {
-        productList.sort((a, b) => b.favoriteCount - a.favoriteCount);
-    }
-    else if (orderBy === "recent") {
-        productList.sort((a, b) => b.createdAt - a.createdAt);
-    }
-
-    
-
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize
-
-    const result = productList.slice(start, end);
-
-    return res.json(result);
 };
 //상품 수정
 export const editProduct = async (req, res) => {

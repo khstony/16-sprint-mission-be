@@ -4,9 +4,9 @@ Content-Type: application/json
 
 {
     "images": ["http://example.com","http://example.com"],
-    "name": "hgk번",
+    "name": "ㅗ",
     "description": "테스트 설명",
-    "price": 14,
+    "price": 1454645,
     "tags": ["테스트", "상품", "간지나는거임ㅅㄱ"]
 }
 
